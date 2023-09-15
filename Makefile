@@ -1,5 +1,5 @@
 CC = gcc
-CFLAG = -Wall -Wextra -pedantic -std=c2x -Os
+CFLAG = -Wall -Wextra -pedantic -std=c2x -g
 LIB = 
 POST_FIX = 
 ELF_FILES = 
@@ -24,6 +24,9 @@ all: aa
 
 aa: src/aa.c src/aa.h 
 	$(CC) $(CFLAG) -fPIC -shared $< -o lib$@.$(POST_FIX)
+
+test%: test%.c 
+	$(CC) $(CFLAG) $< -o test -Wl,-rpath=./ -lpthread -L. -laa
 
 clean: 
 	rm *.dll *.exe *.so $(ELF_FILES)

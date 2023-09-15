@@ -66,8 +66,8 @@ static inline void aa_region_destroy(aa_region_t* region) {
 
 void* aa_malloc(size_t size) {
     // mem align
-    size_t size_8bytes = size + (sizeof (uintptr_t) - 1) / sizeof (uintptr_t);
-    size = size_8bytes + sizeof (aa_frag_t);
+    size_t size_8bytes = (size + (sizeof (uintptr_t) - 1)) / sizeof (uintptr_t);
+    size = (size + sizeof (aa_frag_t) + (sizeof (uintptr_t) - 1)) / sizeof (uintptr_t);
 
     if (aa_arena.tail == NULL) {
         if (aa_arena.head != NULL) {
@@ -96,7 +96,7 @@ void* aa_malloc(size_t size) {
     }
 
     aa_frag_t* result = (void*) &aa_arena.tail->data[aa_arena.tail->cursor];
-    result->size = size_8bytes;
+    result->size = size_8bytes * sizeof (uintptr_t);
     result->magic_num = MAGIC_NUM;
     aa_arena.tail->cursor += size;
     return &result->data;
