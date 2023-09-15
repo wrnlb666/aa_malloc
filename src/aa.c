@@ -171,10 +171,3 @@ void aa_destroy(void) {
     aa_arena.tail = NULL;
 }
 
-
-// arena initialization
-__attribute__((constructor))
-static void aa_arena_init(void) {
-    atexit(aa_destroy);
-}
-
