@@ -35,9 +35,6 @@ thread_local aa_arena_t aa_arena = { 0 };
 // default capacity (8 * 1024) in 8 bytes, would be 2 pages for most arch
 #define DEFAULT_CAP (1024)
 
-// define page size, which is normally 4kb
-#define PAGE_SIZE (4 * 1024)
-
 
 static inline aa_region_t* aa_region_init(size_t capacity);
 static inline void aa_region_destroy(aa_region_t* region);
@@ -47,16 +44,7 @@ static inline aa_region_t* aa_region_init(size_t capacity) {
     uint64_t size = sizeof (aa_region_t) + DEFAULT_CAP * sizeof (uintptr_t);
     
     // page align
-    void* ptr = NULL;
-    #ifdef __linux__
-        if (posix_memalign(&ptr, PAGE_SIZE, size) != 0 ) {
-            fprintf(stderr, "[ERRO]: OOM\n");
-            exit(1);
-        }
-    #elif defined WIN32
-        ptr = _aligned_malloc(size, PAGE_SIZE);
-    #endif  // __linux__
-
+    void* ptr = malloc(size);
     if (ptr == NULL) {
         fprintf(stderr, "[ERRO]: OOM\n");
         exit(1);
@@ -72,11 +60,7 @@ static inline aa_region_t* aa_region_init(size_t capacity) {
 }
 
 static inline void aa_region_destroy(aa_region_t* region) {
-    #ifdef __linux__
-        free(region);
-    #elif defined WIN32
-        _aligned_free(region)
-    #endif  // __linux__
+    free(region);
 }
 
 
@@ -121,7 +105,8 @@ void* aa_malloc(size_t size) {
 
 void* aa_realloc(void *ptr, size_t size)
 {
-    aa_frag_t* prev = ptr - offsetof(aa_frag_t, data);
+    void* old_meta = (char*) ptr - offsetof (aa_frag_t, data);
+    aa_frag_t* prev = old_meta;
     if (prev->magic_num != MAGIC_NUM) {
         fprintf(stderr, "[ERRO]: 0X%p is not allocated(via aa)\n", ptr);
         exit(1);
@@ -131,7 +116,7 @@ void* aa_realloc(void *ptr, size_t size)
     if (size <= old_size) return ptr;
 
     if ((char*) ptr + old_size == (char*) &aa_arena.tail->data[aa_arena.tail->cursor]) {
-        size_t temp = ((size - old_size) + sizeof(uintptr_t) - 1)/sizeof(uintptr_t);
+        size_t temp = ((size - old_size) + sizeof (uintptr_t) - 1) / sizeof (uintptr_t);
         if (aa_arena.tail->cursor + temp <= aa_arena.tail->capacity) {
             aa_arena.tail->cursor += temp;
             return ptr;

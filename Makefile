@@ -1,4 +1,4 @@
-CC = clang
+CC = gcc
 CFLAG = -Wall -Wextra -pedantic -std=c2x -Os
 LIB = 
 POST_FIX = 
@@ -23,7 +23,7 @@ all: aa
 .PHONY: aa
 
 aa: src/aa.c src/aa.h 
-	$(CC) $(CFLAG) -fPIC -shared $< -o lib$@$(POST_FIX)
+	$(CC) $(CFLAG) -fPIC -shared $< -o lib$@.$(POST_FIX)
 
 clean: 
 	rm *.dll *.exe *.so $(ELF_FILES)
