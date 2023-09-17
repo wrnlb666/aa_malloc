@@ -175,6 +175,8 @@ void aa_destroy(void) {
     aa_arena.tail = NULL;
 }
 
+
+
 #ifdef AA_BE_MALLOC
 
 void* malloc(size_t size) {
