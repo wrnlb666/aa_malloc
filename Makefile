@@ -1,5 +1,5 @@
 CC = gcc
-CFLAG = -Wall -Wextra -pedantic -std=c2x -g
+CFLAG = -Wall -Wextra -pedantic -std=c2x -g -D AA_USE_MALLOC
 LIB = 
 POST_FIX = 
 ELF_FILES = 

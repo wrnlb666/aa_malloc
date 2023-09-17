@@ -4,6 +4,13 @@
 #include <stdlib.h>
 
 
+#ifdef __linux__ 
+    #include <sys/mman.h>
+#elif defined _WIN32
+    #include <Windows.h>
+#endif  // __linux__
+
+
 // single allocation node, fragmentation
 typedef struct aa_frag aa_frag_t;
 struct aa_frag {
@@ -34,7 +41,7 @@ thread_local aa_arena_t aa_arena = { 0 };
 
 
 // default capacity (8 * (8 * 1024)) in 8 bytes, would be 16 pages for most arch
-#define DEFAULT_CAP (8 * 1024)
+#define DEFAULT_CAP ((8 * 1024) - sizeof (aa_region_t) / sizeof (uintptr_t))
 
 
 static inline aa_region_t* aa_region_init(size_t capacity);

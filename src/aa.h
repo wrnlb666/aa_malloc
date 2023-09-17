@@ -9,13 +9,6 @@
 #include <threads.h>
 
 
-#ifdef __linux__ 
-    #include <sys/mman.h>
-#elif defined _WIN32
-    #include <Windows.h>
-#endif  // __linux__
-
-
 
 void*   aa_malloc(size_t size);
 void*   aa_realloc(void* ptr, size_t size);
