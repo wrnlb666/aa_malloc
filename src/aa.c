@@ -175,3 +175,22 @@ void aa_destroy(void) {
     aa_arena.tail = NULL;
 }
 
+#ifdef AA_BE_MALLOC
+
+void* malloc(size_t size) {
+    aa_malloc(size);
+}
+
+void* calloc(size_t nmemb, size_t size) {
+    aa_calloc(nmemb, size);
+}
+
+void* realloc(void* ptr, size_t size) {
+    aa_realloc(ptr, size);
+}
+
+void* free(ptr) {
+    (void) ptr;
+}
+
+#endif  // AA_USE_MALLOC
