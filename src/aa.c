@@ -1,5 +1,6 @@
 #include "aa.h"
 #include <pthread.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 
@@ -32,8 +33,8 @@ struct aa_arena {
 thread_local aa_arena_t aa_arena = { 0 };
 
 
-// default capacity (8 * 1024) in 8 bytes, would be 2 pages for most arch
-#define DEFAULT_CAP (1024)
+// default capacity (8 * (8 * 1024)) in 8 bytes, would be 16 pages for most arch
+#define DEFAULT_CAP (8 * 1024)
 
 
 static inline aa_region_t* aa_region_init(size_t capacity);
@@ -41,15 +42,23 @@ static inline void aa_region_destroy(aa_region_t* region);
 
 
 static inline aa_region_t* aa_region_init(size_t capacity) {
-    uint64_t size = sizeof (aa_region_t) + DEFAULT_CAP * sizeof (uintptr_t);
+    uint64_t size = sizeof (aa_region_t) + capacity * sizeof (uintptr_t);
     
-    // page align
-    void* ptr = malloc(size);
-    if (ptr == NULL) {
+    aa_region_t* region;
+
+    #ifdef AA_USE_MALLOC
+    region = malloc(size);
+    #elif defined __linux__ 
+    region = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    #elif defined _WIN32
+    region = VirtuaAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    #endif  // AA_USE_MALLOC
+
+    // test if allocation succeeded
+    if (region == NULL) {
         fprintf(stderr, "[ERRO]: OOM\n");
         exit(1);
     }
-    aa_region_t* region = ptr;
 
     *region = (aa_region_t) {
         .next       = NULL, 
@@ -60,7 +69,17 @@ static inline aa_region_t* aa_region_init(size_t capacity) {
 }
 
 static inline void aa_region_destroy(aa_region_t* region) {
+    #ifdef AA_USE_MALLOC
     free(region);
+    #elif defined __linux__
+    if (region != NULL) {
+        munmap(region, (sizeof (aa_region_t) + region->capacity * sizeof (uintptr_t)));
+    }
+    #elif defined _WIN32
+    if (region != NULL) {
+        VirtualFree(region, 0, MEM_RELEASE);
+    }
+    #endif  // AA_USE_MALLOC
 }
 
 

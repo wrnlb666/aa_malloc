@@ -13,6 +13,6 @@ int main(void) {
 
 
     
-    aa_destroy();
+    // aa_destroy();
     return 0;
 }
