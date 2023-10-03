@@ -56,7 +56,7 @@ static inline aa_region_t* aa_region_init(size_t capacity) {
     #ifdef AA_USE_MALLOC
     region = malloc(size);
     #elif defined __linux__ 
-    region = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    region = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     #elif defined _WIN32
     region = VirtuaAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     #endif  // AA_USE_MALLOC
